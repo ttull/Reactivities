@@ -49,7 +49,7 @@ export default observer(function ProfilePhotos({ profile }: Props) {
                         <Card.Group itemsPerRow={5}>
                             {profile.photos?.map(photo => (
                                 <Card key={photo.id}>
-                                    {photo.isMain ?
+                                    {photo.isMain && isCurrentUser ?
                                         <Image label={{ as: 'a', corner: 'left', icon: 'star', color: 'yellow', size: 'tiny' }} src={photo.url} />
                                         :
                                         <Image src={photo.url} />
