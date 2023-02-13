@@ -66,7 +66,6 @@ export default observer(function ActivityDetailedChat({ activityId }: Props) {
                                 )}
                             </Field>
                         </Form>
-
                     )}
 
                 </Formik>

@@ -5,21 +5,17 @@ import { Photo, Profile } from '../Models/profile';
 import { User, UserFormValues } from '../Models/user';
 import { router } from '../router/Route';
 import { store } from '../stores/store';
-
 const sleep = (delay: number) => {
     return new Promise((resolve) => {
         setTimeout(resolve, delay)
     })
 }
-
 axios.defaults.baseURL = 'http://localhost:5000/api';
-
 axios.interceptors.request.use(config => {
     const token = store.commonStore.token;
     if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
     return config;
 })
-
 axios.interceptors.response.use(async response => {
     await sleep(1000);
     return response;
@@ -58,16 +54,13 @@ axios.interceptors.response.use(async response => {
     }
     return Promise.reject(error);
 })
-
 const responseBody = <T>(response: AxiosResponse<T>) => response.data;
-
 const requests = {
     get: <T>(url: string) => axios.get<T>(url).then(responseBody),
     post: <T>(url: string, body: {}) => axios.post<T>(url, body).then(responseBody),
     put: <T>(url: string, body: {}) => axios.put<T>(url, body).then(responseBody),
     del: <T>(url: string) => axios.delete<T>(url).then(responseBody)
 }
-
 const Activities = {
     list: () => requests.get<Activity[]>('/activities'),
     details: (id: string) => requests.get<Activity>(`/activities/${id}`),
@@ -76,31 +69,30 @@ const Activities = {
     delete: (id: string) => requests.del<void>(`/activities/${id}`),
     attend: (id: string) => requests.post<void>(`/activities/${id}/attend`, {})
 }
-
 const Account = {
     current: () => requests.get<User>('/account'),
     login: (user: UserFormValues) => requests.post<User>('/account/login', user),
     register: (user: UserFormValues) => requests.post<User>('/account/register', user),
 }
-
 const Profiles = {
     get: (username: string) => requests.get<Profile>(`/profiles/${username}`),
-    uploadPhoto: (file: Blob)=> {
+    uploadPhoto: (file: Blob) => {
         let formData = new FormData();
         formData.append('File', file);
         return axios.post<Photo>('photos', formData, {
-            headers: {'Content-Type': 'multipart/form-data'}
+            headers: { 'Content-Type': 'multipart/form-data' }
         })
     },
     setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),
     deletePhoto: (id: string) => requests.del(`/photos/${id}`),
-    updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile)
+    updateProfile: (profile: Partial<Profile>) => requests.put(`/profiles`, profile),
+    updateFollowing: (username: string) => requests.post(`/follow/${username}`, {}),
+    listFollowings: (username: string, predicate: string) => 
+        requests.get<Profile[]>(`/follow/${username}?predicate=${predicate}`)
 }
-
 const agent = {
     Activities,
     Account,
     Profiles
 }
-
 export default agent;

@@ -4,23 +4,19 @@ import { Activity, ActivityFormValues } from "../Models/activity";
 import { format } from "date-fns";
 import { store } from "./store";
 import { Profile } from "../Models/profile";
-
 export default class ActivityStore {
     activityRegistry = new Map<string, Activity>();
     selectedActivity: Activity | undefined = undefined;
     editMode = false;
     loading = false;
     loadingInitial = false;
-
     constructor() {
         makeAutoObservable(this)
     }
-
     get activitiesByDate() {
         return Array.from(this.activityRegistry.values()).sort((a, b) =>
             a.date!.getTime() - b.date!.getTime())
     }
-
     get groupedActivities() {
         return Object.entries(
             this.activitiesByDate.reduce((activities, activity) => {
@@ -30,7 +26,6 @@ export default class ActivityStore {
             }, {} as { [key: string]: Activity[] })
         )
     }
-
     loadActivities = async () => {
         this.setLoadingInitial(true);
         try {
@@ -39,13 +34,11 @@ export default class ActivityStore {
                 this.setActivity(activity);
             })
             this.setLoadingInitial(false);
-
         } catch (error) {
             console.log(error);
             this.setLoadingInitial(false);
         }
     }
-
     loadActivity = async (id: string) => {
         let activity = this.getActivity(id);
         if (activity) {
@@ -66,7 +59,6 @@ export default class ActivityStore {
             }
         }
     }
-
     private setActivity = (activity: Activity) => {
         const user = store.userStore.user;
         if (user) {
@@ -79,15 +71,12 @@ export default class ActivityStore {
         activity.date = new Date(activity.date!);
         this.activityRegistry.set(activity.id, activity);
     }
-
     private getActivity = (id: string) => {
         return this.activityRegistry.get(id);
     }
-
     setLoadingInitial = (state: boolean) => {
         this.loadingInitial = state;
     }
-
     createActivity = async (activity: ActivityFormValues) => {
         const user = store.userStore.user;
         const attendee = new Profile(user!);
@@ -104,7 +93,6 @@ export default class ActivityStore {
             console.log(error);
         }
     }
-
     updateActivity = async (activity: ActivityFormValues) => {
         try {
             await agent.Activities.update(activity);
@@ -119,7 +107,6 @@ export default class ActivityStore {
             console.log(error);
         }
     }
-
     deleteActivity = async (id: string) => {
         this.loading = true;
         try {
@@ -135,7 +122,6 @@ export default class ActivityStore {
             })
         }
     }
-
     updateAttendance = async () => {
         const user = store.userStore.user;
         this.loading = true;
@@ -159,7 +145,6 @@ export default class ActivityStore {
             runInAction(() => this.loading = false);
         }
     }
-
     cancelActivityToggle = async () => {
         this.loading = true;
         try {
@@ -176,11 +161,17 @@ export default class ActivityStore {
             })
         }
     }
-
     clearSelectedActivity = () => {
         this.selectedActivity = undefined;
     }
-
-
+    updateAttendeeFollowing = (username: string) => {
+        this.activityRegistry.forEach(activity => {
+            activity.attendees?.forEach(attendee => {
+                if (attendee.username === username){
+                    attendee.following ? attendee.followersCount-- : attendee.followersCount++;
+                    attendee.following = !attendee.following;
+                }
+            })
+        })
+    }
 }
-
